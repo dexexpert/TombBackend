@@ -9,47 +9,47 @@ const web3 = new Web3("https://matic-mainnet-full-rpc.bwarelabs.com");
 
 const PoolInfos = [
   {
-    poolName: "PDDollar-Matic",
+    poolName: "quick-PDDollar-Matic",
     vault: "0x6F85a47ba7E96798Af45AE094891Bd4a426A0bE1",
     LPToken: "0xebca34c9fc0be6a37deaf62ddd064941f53ed246",
     allocPoint: 90000,
   },
   {
-    poolName: "PDDollar-PolyDodge",
+    poolName: "quick-PDDollar-PolyDodge",
     vault: "0x5A0d45b8150c0de586d3BdF82C38C9706c6186a8",
     LPToken: "0xc8ecb75d92de09ff8e7f4d93675e253ec6b08519",
     allocPoint: 10000,
   },
   {
-    poolName: "PDDollar-USDC",
+    poolName: "quick-PDDollar-USDC",
     vault: "0x5Beb97A339c357ab8325aD8cD7aF97299EF080b8",
     LPToken: "0x9f48f74db18d082e5d22da3375c72c7eaf7a9ef3",
     allocPoint: 25000,
   },
   {
-    poolName: "PDShare-ETH",
+    poolName: "quick-PDShare-ETH",
     vault: "0x52bA951e6459F7e70fD84BcB46CF8c5fABA35bd1",
     LPToken: "0x03afc0563b287caace97b1de84e087fe5e478027",
     allocPoint: 15000,
   },
   {
-    poolName: "PDShare-Matic",
+    poolName: "quick-PDShare-Matic",
     vault: "0xb32A26190953510c23E719082910964622334dB9",
     LPToken: "0xa7c858261f33debb1718a6d417e3e4fbffd9e01b",
     allocPoint: 15000,
   },
   {
-    poolName: "PDShare-PDDollar",
+    poolName: "quick-PDShare-PDDollar",
     vault: "0x3D34802B80585175927b2cFB467a3886f77bedFa",
     LPToken: "0x9e2429b0cd620db724b68083a43434a3d3902fff",
     allocPoint: 45000,
   },
-  {
-    poolName: "PolyDodge",
-    vault: "0x5743f6768A9AeEdcf7bf6650B2C3b4bC73bC9cAC",
-    LPToken: "0x8a953cfe442c5e8855cc6c61b1293fa648bae472",
-    allocPoint: 10000,
-  },
+  // {
+  //   poolName: "quick-PolyDodge",
+  //   vault: "0x5743f6768A9AeEdcf7bf6650B2C3b4bC73bC9cAC",
+  //   LPToken: "0x8a953cfe442c5e8855cc6c61b1293fa648bae472",
+  //   allocPoint: 10000,
+  // },
 ];
 
 // Replace the addresses to point to your Farming Contract
@@ -222,36 +222,33 @@ const bodyParser = require("body-parser");
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
-app.get("/price", async (req, res, next) => {
-  val = await calculateLpTokenPrice(
-    PoolInfos[req.query.poolId].LPToken,
-    true // it means with usd
-  );
-  console.log("val", val);
-  res.send({ price: val + "$" });
+app.get("/prices", async (req, res, next) => {
+  let totalPrice = {};
+  for (const pool of PoolInfos) {
+    const apy = await calculateLpTokenPrice(pool.LPToken, true); //%
+    totalPrice[pool.poolName] = apy;
+  }
+  res.send(JSON.stringify(totalPrice));
 });
 
 app.get("/apy", async (req, res, next) => {
-  val = await calculateAPY(
-    PoolInfos[req.query.poolId].vault,
-    PoolInfos[req.query.poolId].LPToken,
-    PoolInfos[req.query.poolId].allocPoint
-  );
-  console.log(val);
-  res.send({ apy: val + "%" });
+  let totalAPY = {};
+  for (const pool of PoolInfos) {
+    const apy = await calculateAPY(pool.vault, pool.LPToken, pool.allocPoint); //%
+    totalAPY[pool.poolName] = apy;
+  }
+  res.send(JSON.stringify(totalAPY));
 });
 
 app.get("/apr", async (req, res, next) => {
-  val =
-    (await calculateAPY(
-      PoolInfos[req.query.poolId].vault,
-      PoolInfos[req.query.poolId].LPToken,
-      PoolInfos[req.query.poolId].allocPoint
-    )) / 100.0;
-  console.log(val);
-  res.send({
-    daily_apr: (Math.exp(Math.log(val) / 365.0) - 1.0) * 100.0 + "%",
-  });
+  // poolInfos.forEach(pool => {
+  //   const apy = await calculateAPY(pool.vault, pool.LpToken, pool.allocPoint) / 100.0;
+  //   const dailyApr = (Math.exp(Math.log(val) / 365.0) - 1.0) * 100.0; //%
+  // });
+  // console.log(val);
+  // res.send({
+  //   daily_apr: ,
+  // });
 });
 
 app.get("");
